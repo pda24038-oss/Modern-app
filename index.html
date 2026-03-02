@@ -12,6 +12,24 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="error-reporter" style="display:none; padding: 20px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; margin: 20px; border-radius: 8px; font-family: sans-serif;">
+      <h2 style="margin-top:0">Application Error</h2>
+      <p id="error-message"></p>
+      <pre id="error-stack" style="font-size: 12px; overflow: auto;"></pre>
+      <button onclick="window.location.reload()" style="padding: 8px 16px; background: #721c24; color: white; border: none; border-radius: 4px; cursor: pointer;">Reload Page</button>
+    </div>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        var reporter = document.getElementById('error-reporter');
+        var msg = document.getElementById('error-message');
+        var stack = document.getElementById('error-stack');
+        if (reporter && msg) {
+          reporter.style.display = 'block';
+          msg.textContent = message;
+          if (error && error.stack) stack.textContent = error.stack;
+        }
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

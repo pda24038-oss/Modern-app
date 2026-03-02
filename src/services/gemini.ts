@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 const getApiKey = () => {
-  // This will be replaced by Vite's 'define' plugin during build
-  const key = process.env.GEMINI_API_KEY;
-  return key || '';
+  // Try Vite's native way first, then fallback to the defined process.env
+  const metaEnv = (import.meta as any).env;
+  return metaEnv?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
 };
 
 const ai = new GoogleGenAI({ apiKey: getApiKey() });
