@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <script>
+      // Polyfill for libraries that expect Node.js globals
+      window.global = window;
+      window.process = { env: { NODE_ENV: 'production' } };
+    </script>
+    <title>Modern Art Explorer</title>
   </head>
   <body>
     <div id="root"></div>

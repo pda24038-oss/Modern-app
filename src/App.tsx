@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -8,7 +8,7 @@ import {
   Send, 
   Info, 
   Palette, 
-  History,
+  History as HistoryIcon,
   ChevronRight,
   Menu
 } from 'lucide-react';
@@ -18,7 +18,50 @@ import { ArtMovement, ChatMessage } from './types';
 import { askAboutArt } from './services/gemini';
 import { cn } from './lib/utils';
 
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-art-bg p-8 text-center">
+          <div className="max-w-md">
+            <h1 className="text-3xl font-serif mb-4">Something went wrong</h1>
+            <p className="text-art-ink/60 mb-6 font-serif italic">{this.state.error?.message}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="pill-button"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  );
+}
+
+function AppContent() {
   const [selectedMovement, setSelectedMovement] = useState<ArtMovement | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -197,7 +240,7 @@ export default function App() {
                 <Info className="w-4 h-4" />
               </button>
               <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white hover:text-art-ink transition-all">
-                <History className="w-4 h-4" />
+                <HistoryIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
