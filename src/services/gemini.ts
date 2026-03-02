@@ -1,6 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const getApiKey = () => {
+  try {
+    // Vite's 'define' will replace this entire expression with a string literal
+    return process.env.GEMINI_API_KEY || '';
+  } catch (e) {
+    return '';
+  }
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 export async function askAboutArt(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[] = []) {
   try {
