@@ -1,12 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 const getApiKey = () => {
-  try {
-    // Vite's 'define' will replace this entire expression with a string literal
-    return process.env.GEMINI_API_KEY || '';
-  } catch (e) {
-    return '';
-  }
+  // This will be replaced by Vite's 'define' plugin during build
+  const key = process.env.GEMINI_API_KEY;
+  return key || '';
 };
 
 const ai = new GoogleGenAI({ apiKey: getApiKey() });
