@@ -18,7 +18,7 @@ import { MOVEMENTS } from './constants';
 import { ArtMovement, ChatMessage } from './types';
 import { askAboutArt } from './services/gemini';
 import { cn } from './lib/utils';
-import { supabase } from './services/supabase';
+import { supabase as supabaseClient } from './services/supabase';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -68,22 +68,29 @@ function AppContent() {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchFavorites();
+    if (supabaseClient) {
+      fetchFavorites();
+    }
   }, []);
 
   const fetchFavorites = async () => {
-    const { data, error } = await supabase.from('favorites').select('movement_id');
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('favorites').select('movement_id');
     if (data && !error) {
       setFavorites(data.map(f => f.movement_id));
     }
   };
 
   const toggleFavorite = async (movementId: string) => {
+    if (!supabaseClient) {
+      alert("Supabase connection is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.");
+      return;
+    }
     if (favorites.includes(movementId)) {
-      const { error } = await supabase.from('favorites').delete().eq('movement_id', movementId);
+      const { error } = await supabaseClient.from('favorites').delete().eq('movement_id', movementId);
       if (!error) setFavorites(prev => prev.filter(id => id !== movementId));
     } else {
-      const { error } = await supabase.from('favorites').insert([{ movement_id: movementId }]);
+      const { error } = await supabaseClient.from('favorites').insert([{ movement_id: movementId }]);
       if (!error) setFavorites(prev => [...prev, movementId]);
     }
   };
