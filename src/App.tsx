@@ -10,13 +10,15 @@ import {
   Palette, 
   History as HistoryIcon,
   ChevronRight,
-  Menu
+  Menu,
+  Heart
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { MOVEMENTS } from './constants';
 import { ArtMovement, ChatMessage } from './types';
 import { askAboutArt } from './services/gemini';
 import { cn } from './lib/utils';
+import { supabase } from './services/supabase';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -63,6 +65,28 @@ export default function App() {
 
 function AppContent() {
   const [selectedMovement, setSelectedMovement] = useState<ArtMovement | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  const fetchFavorites = async () => {
+    const { data, error } = await supabase.from('favorites').select('movement_id');
+    if (data && !error) {
+      setFavorites(data.map(f => f.movement_id));
+    }
+  };
+
+  const toggleFavorite = async (movementId: string) => {
+    if (favorites.includes(movementId)) {
+      const { error } = await supabase.from('favorites').delete().eq('movement_id', movementId);
+      if (!error) setFavorites(prev => prev.filter(id => id !== movementId));
+    } else {
+      const { error } = await supabase.from('favorites').insert([{ movement_id: movementId }]);
+      if (!error) setFavorites(prev => [...prev, movementId]);
+    }
+  };
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -195,6 +219,22 @@ function AppContent() {
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
+                    <div className="absolute top-4 right-4 z-10">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(movement.id);
+                        }}
+                        className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center transition-all backdrop-blur-sm",
+                          favorites.includes(movement.id) 
+                            ? "bg-red-500 text-white" 
+                            : "bg-white/20 text-white hover:bg-white/40"
+                        )}
+                      >
+                        <Heart className={cn("w-5 h-5", favorites.includes(movement.id) && "fill-current")} />
+                      </button>
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
                       <span className="text-white flex items-center gap-2 font-medium">
                         Learn More <ArrowRight className="w-4 h-4" />
